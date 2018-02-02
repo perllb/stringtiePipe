@@ -1,6 +1,13 @@
 # stringtiePipe
 Pipeline for stringtie assembly
 
+-- Program is a pipeline to use stringtie to assemble transcripts from bam files.
+-- 5 main steps:
+ 1. assemble transcripts, using reference annotation given by user (if no ref wanted, enter '-a noGuide')
+ 2. merge transcripts, from all individual sample assemblies
+ 3. GFF compare reference annotation with merged, to see how many novel transcripts
+ 4. estimate abundances, using merge transcripts gtf
+ 5. converting merged transcripts gtf to bed12 and bb (for ucsc browser visualization of transcripts)
 
 
 ### 1. clone scripts a local folder on your machine
@@ -34,13 +41,7 @@ where:
     -o: director to put all output files
     -h: help
 
--- Program is a pipeline to use stringtie to assemble transcripts from bam files.
--- 5 main steps:
- 1. assemble transcripts, using reference annotation given by user (if no ref wanted, enter '-a none')
- 2. merge transcripts, from all individual sample assemblies
- 3. GFF compare reference annotation with merged, to see how many novel transcripts
- 4. estimate abundances, using merge transcripts gtf
- 5. converting merged transcripts gtf to bed12 and bb
+
 
 #### Acknowledgement
 The pipeline was inspired by the StringTie section on this tutorial:

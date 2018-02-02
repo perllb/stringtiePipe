@@ -15,7 +15,7 @@ bam=$1
 sample=$2
 guide=$3
 
-if [ ! -f ballgown/$sample/$sample.gtf ]
+if [ ! -f ballgown/$sample/$sample.gtf ] && [ ! -f abundance/$sample.tab ]
 then
   # estimate abundances using merged assemly
   # assemble using given guide
@@ -35,4 +35,7 @@ then
       -l $sample \
       -o ballgown/$sample/$sample.gtf \
       -A abundance/$sample.tab
+
+else
+  echo " ... (ballgown/$sample/$sample.gtf and abundance/$sample.tab already exist.. Nothing to do with sample $sample)"
 fi

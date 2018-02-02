@@ -36,4 +36,6 @@ then
       -l $sample \
       -o assembly/$basename.gtf
 
+else
+  echo " ... (assembly/$basename.gtf already exist.. Nothing to do with sample $sample)"
 fi

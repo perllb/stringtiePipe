@@ -14,24 +14,34 @@ ml StringTie/1.3.3b
 mergedFile=$1
 guide=$2
 
-if [ $guide == 'noGuide' ]
+if [ ! -s $mergedFile ]
 then
-  # merge all transcripts from the different samples
-  echo "> merge into: $mergedFile"
-  stringtie \
-    --merge \
-    -p 8 \
-    -o $mergedFile \
-    assembly/mergelist.txt
+  # assemble using given guide
+  echo "> Running stringtie merge with: "
+  echo "- Ref annotation guide: $guide"
+  echo "- mergelist:            assembly/mergelist.txt"
+  echo "- output:               $mergedFile"
 
-elif [ ! -f $mergedFile ]
-then
-  # merge all transcripts from the different samples
-  echo "> merge into: $mergedFile"
-  stringtie \
-    --merge \
-    -p 8 \
-    -G $guide \
-    -o $mergedFile \
-    assembly/mergelist.txt
+  ## if no guide ref annotation
+  if [ $guide == 'noGuide' ]
+  then
+    # merge all transcripts from the different samples
+    stringtie \
+      --merge \
+      -p 8 \
+      -o $mergedFile \
+      assembly/mergelist.txt
+
+  # if reference annotation
+  else
+    # merge all transcripts from the different samples
+    stringtie \
+      --merge \
+      -p 8 \
+      -G $guide \
+      -o $mergedFile \
+      assembly/mergelist.txt
+  fi
 fi
+
+echo "-- merged into: $mergedFile .."

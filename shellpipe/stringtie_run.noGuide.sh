@@ -15,9 +15,9 @@ bam=$1
 sample=$2
 
 ## create basename variable
-basename=$sample.stringtie.noguide.rf
+basename=$sample.stringtie.noGuide.rf
 
-if [ ! -f assembly/$basename.gtf ] 
+if [ ! -f assembly/$basename.gtf ]
 then
   # assemble using Gencode.v27.annotation.gtf
   stringtie \

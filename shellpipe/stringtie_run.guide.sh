@@ -17,7 +17,7 @@ guideName=$3
 guide=$4
 
 ## create basename variable
-basename=$sample.stringtie.$guideName.guide.rf
+basename=$sample.stringtie.$guideName.rf
 
 if [ ! -f assembly/$basename.gtf ]
 then

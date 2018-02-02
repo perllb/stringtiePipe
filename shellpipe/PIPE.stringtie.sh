@@ -13,7 +13,7 @@ usage="Usage:
 > $(basename "$0") -a </path/to/annotation.gtf> -b </path/ToBam/> -s <suffix of bam to remove> -o <outdir>
 where:
     -a: annotation file. entire path needs to be included.
-      : if no reference annotation needed, enter -a none
+      : if no reference annotation needed, enter '-a noGuide'
     -b: path to bamfile. only path, not name of the bamfile
     -s: suffix to remove from bamfiles (e.g. Aligned.SortedByCoord.out.bam)
     -o: director to put all output files
@@ -21,7 +21,7 @@ where:
 
 -- Program is a pipeline to use stringtie to assemble transcripts from bam files.
 -- 5 main steps:
- 1. assemble transcripts, using reference annotation given by user (if no ref wanted, enter '-a none')
+ 1. assemble transcripts, using reference annotation given by user (if no ref wanted, enter '-a noGuide')
  2. merge transcripts, from all individual sample assemblies
  3. GFF compare reference annotation with merged, to see how many novel transcripts
  4. estimate abundances, using merge transcripts gtf
@@ -71,7 +71,7 @@ done
 shift $((OPTIND - 1))
 
 # If all parameters set, the go
-if [ -f $guide ] && [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
+if [[ -f $guide ] || [ $guide == 'noGuide' ]] && [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
   then
 
   ## 1. make folder to output gtf and bedfiles
@@ -80,7 +80,10 @@ if [ -f $guide ] && [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
     mkdir assembly
   fi
 
+  # set variables
   scrPath=$(pwd)
+  baseGuide=$(basename $guide)
+  echo "GuideName: $baseGuide"
 
   # go to output directory to put files there!
   cd $outdir
@@ -88,18 +91,35 @@ if [ -f $guide ] && [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
   ## 1. Run stringtie
   echo "> Run stringtie assembly .. "
 
-  for file in $bamPath/*out.bam
-    do id=$(basename $file $suff) # get ID of file (include hg38.unique)
-    echo " .. sample $id"
-    sh $scrPath/stringtie_run.guide.sh $file $id genc.v27 $guide
-  done
+  # If NO reference annotation wanted (-a none)
+  if [ $guide == 'noGuide' ]
+    then
+    echo ".. no reference annotation used to guide assembly.. "
+
+    # run stringtie for each file
+    for file in $bamPath/*out.bam
+      do id=$(basename $file $suff) # get ID of file (include hg38.unique)
+      echo " .. sample $id"
+      sh $scrPath/stringtie_run.noGuide.sh $file $id
+    done
+  ### If reference annotation wanted
+  else
+
+    echo ".. reference annotation: $baseGuide "
+    for file in $bamPath/*out.bam
+      do id=$(basename $file $suff) # get ID of file (include hg38.unique)
+      echo " .. sample $id"
+      sh $scrPath/stringtie_run.guide.sh $file $id $baseGuide $guide
+    done
+
+  fi
 
   ## 2. Merge transcripts
   # First, make mergelist
-  ls assembly/*.genc.*gtf > assembly/mergelist.txt
-  merged=assembly/stringtie_merged.gencGuide.gtf
+  ls assembly/*.stringtie.$baseGuide > assembly/mergelist.txt
+  merged=assembly/stringtie_merged.$baseGuide.gtf
   echo "> Merge transcripts"
-  sh $scrPath/stringtie_merge.sh
+  sh $scrPath/stringtie_merge.sh $merged
 
   # get number of transcripts
   #cat $merged  | grep -v "^#" | awk '$3=="transcript" {print}' | wc -l
@@ -108,7 +128,7 @@ if [ -f $guide ] && [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
   echo "> Compare assembled to known.."
   if [ ! -f $merged ]
   then
-    gffcompare -r $guide -G -o assembly/merged assembly/stringtie_merged.gencGuide.gtf
+    gffcompare -r $guide -G -o assembly/merged $merged
   fi
 
   ## 4. Estimate abuncances

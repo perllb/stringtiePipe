@@ -142,7 +142,7 @@ if [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
     echo "> Estimate abundances of merged transcripts.."
     for file in $bamPath/*out.bam
       do id=$(basename $file $suff) # get ID of file (include hg38.unique)
-      echo " .. sample $id"
+      echo " .. sample $id : $(date)"
       sh $scrPath/stringtie_run.merged.sh $file $id $merged
     done
 

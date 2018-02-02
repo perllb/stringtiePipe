@@ -3,7 +3,7 @@
 #SBATCH -N 1
 #SBATCH -A lsens2017-3-2
 #SBATCH -p dell
-#SBATCH -t 03:00:00
+#SBATCH -t 10:00:00
 #SBATCH -J %j.stringTie.pipe
 #SBATCH -o %j.stringTie.pipe.out
 #SBATCH -e %j.stringTie.pipe.err

@@ -42,3 +42,7 @@ where:
  4. estimate abundances, using merge transcripts gtf
  5. converting merged transcripts gtf to bed12 and bb
 
+#### Acknowledgement
+The pipeline was inspired by the StringTie section on this tutorial:
+https://davetang.org/muse/2017/10/25/getting-started-hisat-stringtie-ballgown/
+Thanks Dave Tang!

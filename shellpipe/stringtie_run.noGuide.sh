@@ -15,15 +15,20 @@ bam=$1
 sample=$2
 
 ## create basename variable
-basename=$sample.stringtie.noGuide.rf
+basename=$sample.stringtie.noGuide
 
 if [ ! -f assembly/$basename.gtf ]
 then
-  # assemble using Gencode.v27.annotation.gtf
+  # assemble using no guide reference annotation
+  echo "> Running stringtie with: "
+  echo "- Ref annotation guide: no reference guide"
+  echo "- Sample:               $sample"
+  echo "- output:               $basename.gtf"
+
   stringtie \
-      $bam \
-      -p 8 \
-      --rf \
-      -l $sample \
-      -o assembly/$basename.gtf
+    $bam \
+    -p 8 \
+    --rf \
+    -l $sample \
+    -o assembly/$basename.gtf
 fi

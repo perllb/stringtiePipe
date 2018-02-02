@@ -11,15 +11,27 @@
 ml GCC/6.4.0-2.28  OpenMPI/2.1.1
 ml StringTie/1.3.3b
 
-$mergedFile=$1
+mergedFile=$1
+guide=$2
 
-if [ ! -f $mergedFile ]
+if [ $guide == 'noGuide' ]
 then
   # merge all transcripts from the different samples
+  echo "> merge into: $mergedFile"
   stringtie \
     --merge \
     -p 8 \
-    -G /projects/fs1/medpvb/no_backup/genomicData/hg38/gencode/gencode.v27/gencode.v27.annotation.gtf \
+    -o $mergedFile \
+    assembly/mergelist.txt
+
+elif [ ! -f $mergedFile ]
+then
+  # merge all transcripts from the different samples
+  echo "> merge into: $mergedFile"
+  stringtie \
+    --merge \
+    -p 8 \
+    -G $guide \
     -o $mergedFile \
     assembly/mergelist.txt
 fi

@@ -40,8 +40,14 @@ while getopts ':a:b:s:o:' option; do
         guide=$OPTARG
     elif [ ! -r $OPTARG ]
       then
-        echo ">> ERROR: reference annotation file $OPTARG does not exists or is not readable!"
-        exit 1
+        if [ $OPTARG == "noGuide" ]
+          then
+          guide=$OPTARG
+        else
+          echo ">> ERROR: reference annotation file $OPTARG does not exists or is not readable!"
+          echo ">> If no reference annotation wanted, enter '-a noGuide'"
+          exit 1
+        fi
     fi
        ;;
     b)
@@ -71,76 +77,78 @@ done
 shift $((OPTIND - 1))
 
 # If all parameters set, the go
-if [[ -f $guide ] || [ $guide == 'noGuide' ]] && [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
+if [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
   then
-
-  ## 1. make folder to output gtf and bedfiles
-  if [ ! -d assembly ]
-  then
-    mkdir assembly
-  fi
-
-  # set variables
-  scrPath=$(pwd)
-  baseGuide=$(basename $guide)
-  echo "GuideName: $baseGuide"
-
-  # go to output directory to put files there!
-  cd $outdir
-
-  ## 1. Run stringtie
-  echo "> Run stringtie assembly .. "
-
-  # If NO reference annotation wanted (-a none)
-  if [ $guide == 'noGuide' ]
+  if [ -f $guide ] || [ $guide == 'noGuide' ]
     then
-    echo ".. no reference annotation used to guide assembly.. "
 
-    # run stringtie for each file
+    ## 1. make folder to output gtf and bedfiles
+    if [ ! -d assembly ]
+    then
+      mkdir assembly
+    fi
+
+    # set variables
+    scrPath=$(pwd)
+    baseGuide=$(basename $guide .gtf)
+
+    # go to output directory to put files there!
+    cd $outdir
+
+    ## 1. Run stringtie
+    echo "> Run stringtie assembly .. "
+
+    # If NO reference annotation wanted (-a none)
+    if [ $guide == 'noGuide' ]
+      then
+      echo ".. no reference annotation used to guide assembly.. "
+
+      # run stringtie for each file
+      for file in $bamPath/*out.bam
+        do id=$(basename $file $suff) # get ID of file (include hg38.unique)
+        echo " .. sample $id : $(date)"
+        sh $scrPath/stringtie_run.noGuide.sh $file $id
+      done
+    ### If reference annotation wanted
+    else
+
+      echo ".. reference annotation: $baseGuide "
+      for file in $bamPath/*out.bam
+        do id=$(basename $file $suff) # get ID of file (include hg38.unique)
+        echo " .. sample $id : $(date)"
+        sh $scrPath/stringtie_run.guide.sh $file $id $baseGuide $guide
+      done
+
+    fi
+
+    ## 2. Merge transcripts
+    # First, make mergelist
+    ls assembly/*.stringtie.$baseGuide.gtf > assembly/mergelist.txt
+    merged=assembly/stringtie_merged.$baseGuide.gtf
+    echo "> Merge transcripts.."
+    sh $scrPath/stringtie_merge.sh $merged $guide
+
+    # get number of transcripts
+    #cat $merged  | grep -v "^#" | awk '$3=="transcript" {print}' | wc -l
+
+    # 3, Compare the assembled transcripts to known transcripts
+    echo "> Compare assembled to known.."
+    if [ ! -f $merged ]
+    then
+      gffcompare -r $guide -G -o assembly/merged $merged
+    fi
+
+    ## 4. Estimate abuncances
+    echo "> Estimate abundances of merged transcripts.."
     for file in $bamPath/*out.bam
       do id=$(basename $file $suff) # get ID of file (include hg38.unique)
       echo " .. sample $id"
-      sh $scrPath/stringtie_run.noGuide.sh $file $id
-    done
-  ### If reference annotation wanted
-  else
-
-    echo ".. reference annotation: $baseGuide "
-    for file in $bamPath/*out.bam
-      do id=$(basename $file $suff) # get ID of file (include hg38.unique)
-      echo " .. sample $id"
-      sh $scrPath/stringtie_run.guide.sh $file $id $baseGuide $guide
+      sh $scrPath/stringtie_run.merged.sh $file $id $merged
     done
 
+    ## 5. gtf to bed12 and bb for merged transcripts
+    $scrPath/gtf2bb12.sh -g $merged
   fi
-
-  ## 2. Merge transcripts
-  # First, make mergelist
-  ls assembly/*.stringtie.$baseGuide > assembly/mergelist.txt
-  merged=assembly/stringtie_merged.$baseGuide.gtf
-  echo "> Merge transcripts"
-  sh $scrPath/stringtie_merge.sh $merged
-
-  # get number of transcripts
-  #cat $merged  | grep -v "^#" | awk '$3=="transcript" {print}' | wc -l
-
-  # 3, Compare the assembled transcripts to known transcripts
-  echo "> Compare assembled to known.."
-  if [ ! -f $merged ]
-  then
-    gffcompare -r $guide -G -o assembly/merged $merged
-  fi
-
-  ## 4. Estimate abuncances
-  echo "> Estimate abundances of merged transcripts.."
-  for file in $bamPath/*out.bam
-    do id=$(basename $file $suff) # get ID of file (include hg38.unique)
-    echo " .. sample $id"
-    sh $scrPath/stringtie_run.merged.sh $file $id $merged
-  done
-
-  ## 5. gtf to bed12 and bb for merged transcripts
-  $scrPath/gtf2bb12.sh -g $merged
 
 else
   echo "$usage" >&2

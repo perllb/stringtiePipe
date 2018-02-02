@@ -17,11 +17,16 @@ guideName=$3
 guide=$4
 
 ## create basename variable
-basename=$sample.stringtie.$guideName.rf
+basename=$sample.stringtie.$guideName
 
 if [ ! -f assembly/$basename.gtf ]
 then
-  # assemble using Gencode.v27.annotation.gtf
+  # assemble using given guide
+  echo "> Running stringtie with: "
+  echo "- Ref annotation guide: $guide"
+  echo "- Sample:               $sample"
+  echo "- output:               $basename.gtf"
+
   stringtie \
       $bam \
       -B \

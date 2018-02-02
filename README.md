@@ -12,7 +12,7 @@ git clone https://github.com/perllb/stringtiePipe.git
 #### Can be run either with sh or sbatch (if you edit #SBATCH headers to fit your server)
 
 ```
-sh PIPE_stringTie.sh \ 
+sh shellpipe/PIPE_stringTie.sh \ 
   -a /projects/fs1/medpvb/no_backup/genomicData/hg38/gencode/gencode.v27/gencode.v27.annotation.gtf \
   -b /projects/fs1/medpvb/backup/projects/ChimpHuman/Aligned_hg38_STAR_unique \
   -s Aligned.sortedByCoord.out.bam \

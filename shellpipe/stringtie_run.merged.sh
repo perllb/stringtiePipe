@@ -18,6 +18,13 @@ guide=$3
 if [ ! -f ballgown/$sample/$sample.gtf ]
 then
   # estimate abundances using merged assemly
+  # assemble using given guide
+  echo "> Running stringtie with: "
+  echo "- Ref annotation guide: $guide"
+  echo "- Sample:               $sample"
+  echo "- output ballgown:      ballgown/$sample/$sample.gtf"
+  echo "- output abundance:     abundance/$sample.tab"
+
   stringtie \
       $bam \
       -e \

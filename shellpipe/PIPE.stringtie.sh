@@ -132,10 +132,13 @@ if [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
     #cat $merged  | grep -v "^#" | awk '$3=="transcript" {print}' | wc -l
 
     # 3, Compare the assembled transcripts to known transcripts
-    echo "> Compare assembled to known.."
-    if [ ! -f $merged ]
+    if [ $guide != 'noGuide' ]
     then
-      gffcompare -r $guide -G -o assembly/merged $merged
+      echo "> Compare assembled to known.."
+      if [ ! -f $merged ]
+      then
+        gffcompare -r $guide -G -o assembly/merged $merged
+      fi
     fi
 
     ## 4. Estimate abuncances
@@ -143,7 +146,7 @@ if [ -d $bamPath ] && [ ! -z "$suff" ] && [ ! -z $outdir ]
     for file in $bamPath/*out.bam
       do id=$(basename $file $suff) # get ID of file (include hg38.unique)
       echo " .. sample $id : $(date)"
-      sh $scrPath/stringtie_run.merged.sh $file $id $merged
+      sh $scrPath/stringtie_run.merged.sh $file $id -i $merged
     done
 
     ## 5. gtf to bed12 and bb for merged transcripts
